@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 import xyz.kymirai.translator.bean.Star;
 
-class ValueConverter {
+public class ValueConverter {
     @TypeConverter
     public HashMap<String, Star.Value[]> revertValue(String value) {
         try {
