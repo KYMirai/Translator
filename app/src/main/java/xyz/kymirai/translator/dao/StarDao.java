@@ -1,9 +1,11 @@
-package xyz.kymirai.translator;
+package xyz.kymirai.translator.dao;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+
+import xyz.kymirai.translator.bean.Star;
 
 @Dao
 public interface StarDao {

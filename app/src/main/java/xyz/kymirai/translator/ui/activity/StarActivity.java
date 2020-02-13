@@ -1,29 +1,27 @@
-package xyz.kymirai.translator;
+package xyz.kymirai.translator.ui.activity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.AbsListView;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import xyz.kymirai.translator.AppApplication;
+import xyz.kymirai.translator.R;
+import xyz.kymirai.translator.R2;
+import xyz.kymirai.translator.bean.Star;
+import xyz.kymirai.translator.dao.StarDao;
 
 public class StarActivity extends AppCompatActivity {
     @BindView(R2.id.lv_star)

@@ -1,4 +1,4 @@
-package xyz.kymirai.translator;
+package xyz.kymirai.translator.utills;
 
 import android.content.Context;
 
@@ -13,14 +13,15 @@ import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
+import xyz.kymirai.translator.bean.Data;
 
-class Utils {
-    static int dip2px(Context context, float dpValue) {
+public class Utils {
+    public static int dip2px(Context context, float dpValue) {
         float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
 
-    static String getType(int i) {
+    public static String getType(int i) {
         switch (i) {
             case 1:
                 return "zh-CHS";
@@ -33,7 +34,7 @@ class Utils {
         }
     }
 
-    static int getType(String i) {
+    public static int getType(String i) {
         switch (i) {
             case "auto":
                 return 0;
@@ -52,7 +53,7 @@ class Utils {
         }
     }
 
-    static String encode(int from, int to) {
+    public static String encode(int from, int to) {
         return getType(from) + "2" + getType(to);
     }
 
@@ -103,7 +104,7 @@ class Utils {
         );
     }
 
-    static void getData(String text, String from, String to, Callback<Data> callback) {
+    public static void getData(String text, String from, String to, Callback<Data> callback) {
         long l = System.currentTimeMillis();
         String salt = String.valueOf(l);
         String timeStamp = String.valueOf(l / 1000);

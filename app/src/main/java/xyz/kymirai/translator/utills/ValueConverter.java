@@ -1,4 +1,4 @@
-package xyz.kymirai.translator;
+package xyz.kymirai.translator.utills;
 
 import androidx.room.TypeConverter;
 
@@ -7,7 +7,8 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.HashMap;
-import java.util.Map;
+
+import xyz.kymirai.translator.bean.Star;
 
 class ValueConverter {
     @TypeConverter

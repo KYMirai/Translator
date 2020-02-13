@@ -1,8 +1,4 @@
-package xyz.kymirai.translator;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
+package xyz.kymirai.translator.ui.activity;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -19,7 +15,6 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -27,6 +22,10 @@ import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +39,13 @@ import butterknife.OnLongClick;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import xyz.kymirai.translator.AppApplication;
+import xyz.kymirai.translator.bean.Data;
+import xyz.kymirai.translator.R;
+import xyz.kymirai.translator.R2;
+import xyz.kymirai.translator.bean.Star;
+import xyz.kymirai.translator.dao.StarDao;
+import xyz.kymirai.translator.utills.Utils;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     @BindView(R2.id.text)
@@ -48,8 +54,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     ListView lv;
     @BindView(R2.id.cv)
     CardView cv;
-    @BindView(R2.id.go)
-    Button go;
     @BindView(R2.id.from)
     Spinner Spinner_from;
     @BindView(R2.id.to)

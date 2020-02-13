@@ -4,6 +4,8 @@ import android.app.Application;
 
 import androidx.room.Room;
 
+import xyz.kymirai.translator.utills.AppDatabase;
+
 public class AppApplication extends Application {
     private AppDatabase mAppDatabase;
 
