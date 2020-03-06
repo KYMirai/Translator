@@ -16,45 +16,14 @@ import retrofit2.http.Query;
 import xyz.kymirai.translator.bean.Data;
 
 public class Utils {
+    private final static String
+            appId = "76524f347382fd74",
+            appKey = "TaMNhoPMaEhx11hxKAjotFKygoVuRQQ7",
+            signType = "v3";
+
     public static int dip2px(Context context, float dpValue) {
         float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
-    }
-
-    public static String getType(int i) {
-        switch (i) {
-            case 1:
-                return "zh-CHS";
-            case 2:
-                return "en";
-            case 3:
-                return "ja";
-            default:
-                return "auto";
-        }
-    }
-
-    public static int getType(String i) {
-        switch (i) {
-            case "auto":
-                return 0;
-            case "zh-CHS":
-                return 1;
-            case "en":
-            case "En":
-            case "EN":
-                return 2;
-            case "ja":
-            case "JA":
-            case "Ja":
-                return 3;
-            default:
-                return -1;
-        }
-    }
-
-    public static String encode(int from, int to) {
-        return getType(from) + "2" + getType(to);
     }
 
     private static String getSHA256(String str) {
@@ -85,10 +54,6 @@ public class Utils {
         return stringBuilder.toString();
     }
 
-    private final static String
-            appId = "76524f347382fd74",
-            appKey = "TaMNhoPMaEhx11hxKAjotFKygoVuRQQ7",
-            signType = "v3";
 
     public interface GetRequest_Interface {
         @GET("api")

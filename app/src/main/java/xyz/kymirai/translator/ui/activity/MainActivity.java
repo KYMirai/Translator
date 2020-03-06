@@ -4,11 +4,13 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.fingerprint.FingerprintManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,9 +47,10 @@ import xyz.kymirai.translator.R;
 import xyz.kymirai.translator.R2;
 import xyz.kymirai.translator.bean.Star;
 import xyz.kymirai.translator.dao.StarDao;
+import xyz.kymirai.translator.utills.Language;
 import xyz.kymirai.translator.utills.Utils;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class MainActivity extends AppCompatActivity {
     @BindView(R2.id.text)
     EditText text;
     @BindView(R2.id.lv)
@@ -63,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     StarDao starDao;
 
     ArrayList<Map<String, String>> list;
+    String l = "auto2auto";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 if (!TextUtils.isEmpty(text)
                         && (stars = starDao.get(text)).length > 0
                         && (star = stars[0]).values != null
-                        && star.values.get(Utils.encode(Spinner_from.getSelectedItemPosition(), Spinner_to.getSelectedItemPosition())) != null) {
+                        && star.values.get(Language.encode(Spinner_from.getSelectedItemPosition(), Spinner_to.getSelectedItemPosition())) != null) {
                     updateByDataBase(stars[0].values);
                 } else {
                     iv_star.setImageResource(R.drawable.ic_star_false);
@@ -125,23 +129,36 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             return false;
         });
 
-        Spinner_to.setOnItemSelectedListener(this);
-        Spinner_from.setOnItemSelectedListener(this);
+        Spinner_from.setOnItemSelectedListener(new OnItemSelectedListener(Spinner_from, 0));
+        Spinner_to.setOnItemSelectedListener(new OnItemSelectedListener(Spinner_to, 1));
     }
 
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        Star[] stars;
-        if ((stars = starDao.get(text.getText().toString())).length > 0) {
-            updateByDataBase(stars[0].values);
-        } else {
-            lv.setAdapter(null);
+    private class OnItemSelectedListener implements AdapterView.OnItemSelectedListener {
+        Spinner spinner;
+        int i;
+
+        OnItemSelectedListener(Spinner spinner, int i) {
+            this.spinner = spinner;
+            this.i = i;
+        }
+
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            if (!l.split("2")[i].equals(Language.getLanguage(position).value)) {
+                Star[] stars;
+                if ((stars = starDao.get(text.getText().toString())).length > 0) {
+                    updateByDataBase(stars[0].values);
+                } else {
+                    lv.setAdapter(null);
+                }
+            }
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
         }
     }
 
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-    }
 
     @OnClick(R.id.star)
     public void click_star(ImageView iv) {
@@ -149,21 +166,34 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if (!TextUtils.isEmpty(text)) {
             Star[] stars = starDao.get(text);
             Star star = null;
-            String type = Utils.encode(Spinner_from.getSelectedItemPosition(), Spinner_to.getSelectedItemPosition());
+            String type = Language.encode(l);
+
             if (stars.length > 0 && (star = stars[0]).values != null && star.values.get(type) != null) {
                 star.values.put(type, null);
                 starDao.insert(star);
                 iv.setImageResource(R.drawable.ic_star_false);
-            } else {
-                if (star == null) star = new Star(text, new HashMap<>());
-                iv.setImageResource(R.drawable.ic_star_true);
+            } else if (list != null && list.size() > 0) {
+                if (star == null) star = new Star(text);
                 ArrayList<Star.Value> arrayList = new ArrayList<>();
                 for (Map<String, String> map : list) {
                     arrayList.add(new Star.Value(map.get("translation"), map.get("phonetic")));
                 }
-                star.values.put(Utils.encode(Spinner_from.getSelectedItemPosition(), Spinner_to.getSelectedItemPosition()), arrayList.toArray(new Star.Value[0]));
+                star.values.put(type, arrayList.toArray(new Star.Value[0]));
                 starDao.insert(star);
+                iv.setImageResource(R.drawable.ic_star_true);
             }
+        }
+    }
+
+    public void is_star(String text) {
+        Star[] stars = starDao.get(text);
+        Star star = null;
+        String type = Language.encode(l);
+
+        if (stars.length > 0 && (star = stars[0]).values != null && star.values.get(type) != null) {
+            iv_star.setImageResource(R.drawable.ic_star_true);
+        } else {
+            iv_star.setImageResource(R.drawable.ic_star_false);
         }
     }
 
@@ -172,6 +202,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == 666 && data != null) {
             text.setText(data.getStringExtra("text"));
+            String type = data.getStringExtra("type");
+            String[] strs;
+            if (type != null && (strs = type.split(" -> ")).length == 2) {
+                Language from = Language.getLanguage(strs[0]), to = Language.getLanguage(strs[1]);
+                Spinner_from.setSelection(from.type);
+                Spinner_to.setSelection(to.type);
+                l = from.value + "2" + to.value;
+            } else {
+                Spinner_from.setSelection(0);
+                Spinner_to.setSelection(0);
+                l = "auto2auto";
+            }
             click_go();
         }
     }
@@ -179,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private void updateByDataBase(HashMap<String, Star.Value[]> hashMap) {
         list = new ArrayList<>();
         Star.Value[] values;
-        if (hashMap != null && (values = hashMap.get(Utils.encode(Spinner_from.getSelectedItemPosition(), Spinner_to.getSelectedItemPosition()))) != null) {
+        if (hashMap != null && (values = hashMap.get(Language.encode(Spinner_from.getSelectedItemPosition(), Spinner_to.getSelectedItemPosition()))) != null) {
             for (Star.Value value : values) {
                 Map<String, String> map = new HashMap<>();
                 map.put("translation", value.text);
@@ -208,53 +250,64 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if (!TextUtils.isEmpty(text)) {
             Star[] stars = starDao.get(text);
             Star star;
-            if (stars.length > 0 && (star = stars[0]).values != null && star.values.get(Utils.encode(Spinner_from.getSelectedItemPosition(), Spinner_to.getSelectedItemPosition())) != null) {
-                updateByDataBase(stars[0].values);
+            if (stars.length > 0 && (star = stars[0]).values != null && star.values.get(Language.encode(Spinner_from.getSelectedItemPosition(), Spinner_to.getSelectedItemPosition())) != null) {
+                updateByDataBase(star.values);
             } else {
                 iv_star.setImageResource(R.drawable.ic_star_false);
-                Utils.getData(text, Utils.getType(Spinner_from.getSelectedItemPosition()), Utils.getType(Spinner_to.getSelectedItemPosition()), new Callback<Data>() {
+                Utils.getData(text, Language.getLanguage(Spinner_from.getSelectedItemPosition()).value, Language.getLanguage(Spinner_to.getSelectedItemPosition()).value, new Callback<Data>() {
                     @Override
                     public void onResponse(Call<Data> call, Response<Data> response) {
-                        new Thread(() -> {
-                            Data data = response.body();
-                            list = new ArrayList<>();
+                        Data data = response.body();
+                        list = new ArrayList<>();
 
-                            //String[] l = data.l.split("2");
-                            //String from = l[0], to = l[1];
+                        l = data.l;
+                        String[] strs;
+                        if ((strs = l.split("2")).length == 2) {
+                            AdapterView.OnItemSelectedListener listener = new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                            if (data.basic != null && !TextUtils.isEmpty(data.basic.phonetic)) {
-                                Map<String, String> map = new HashMap<>();
-                                map.put("translation", data.query);
-                                map.put("phonetic", "[" + data.basic.phonetic + "]");
-                                list.add(map);
-                            }
+                                }
 
-                            Iterator<String> translation = data.translation.iterator();
-                            while (translation.hasNext()) {
-                                Map<String, String> map = new HashMap<>();
-                                map.put("translation", translation.next());
-                                list.add(map);
-                            }
+                                @Override
+                                public void onNothingSelected(AdapterView<?> parent) {
 
-                            if (data.web != null) {
-                                Iterator<Data.web> web = data.web.iterator();
-                                while (web.hasNext()) {
-                                    Iterator<String> value = web.next().value.iterator();
-                                    while (value.hasNext()) {
-                                        Map<String, String> map = new HashMap<>();
-                                        map.put("translation", value.next());
-                                        list.add(map);
-                                    }
+                                }
+                            };
+                            Spinner_from.setSelection(Language.getLanguage(strs[0]).type);
+                            Spinner_to.setSelection(Language.getLanguage(strs[1]).type);
+
+                            is_star(l);
+                        }
+
+                        if (data.basic != null && !TextUtils.isEmpty(data.basic.phonetic)) {
+                            Map<String, String> map = new HashMap<>();
+                            map.put("translation", data.query);
+                            map.put("phonetic", "[" + data.basic.phonetic + "]");
+                            list.add(map);
+                        }
+
+                        Iterator<String> translation = data.translation.iterator();
+                        while (translation.hasNext()) {
+                            Map<String, String> map = new HashMap<>();
+                            map.put("translation", translation.next());
+                            list.add(map);
+                        }
+
+                        if (data.web != null) {
+                            Iterator<Data.web> web = data.web.iterator();
+                            while (web.hasNext()) {
+                                Iterator<String> value = web.next().value.iterator();
+                                while (value.hasNext()) {
+                                    Map<String, String> map = new HashMap<>();
+                                    map.put("translation", value.next());
+                                    list.add(map);
                                 }
                             }
+                        }
 
-                            runOnUiThread(() -> {
-                                SimpleAdapter simpleAdapter = new SimpleAdapter(MainActivity.this, list, R.layout.item, new String[]{"translation", "phonetic"}, new int[]{R.id.tv, R.id.phonetic});
-                                lv.setAdapter(simpleAdapter);
-                            });
-                        }).start();
-
-
+                        SimpleAdapter simpleAdapter = new SimpleAdapter(MainActivity.this, list, R.layout.item, new String[]{"translation", "phonetic"}, new int[]{R.id.tv, R.id.phonetic});
+                        lv.setAdapter(simpleAdapter);
                     }
 
                     @Override
