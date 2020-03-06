@@ -68,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Map<String, String>> list;
     String l = "auto2auto";
 
+    boolean[] changes = {true, true};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
@@ -129,28 +131,28 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        Spinner_from.setOnItemSelectedListener(new OnItemSelectedListener(Spinner_from, 0));
-        Spinner_to.setOnItemSelectedListener(new OnItemSelectedListener(Spinner_to, 1));
+        Spinner_from.setOnItemSelectedListener(new OnItemSelectedListener(0));
+        Spinner_to.setOnItemSelectedListener(new OnItemSelectedListener(1));
     }
 
     private class OnItemSelectedListener implements AdapterView.OnItemSelectedListener {
-        Spinner spinner;
         int i;
 
-        OnItemSelectedListener(Spinner spinner, int i) {
-            this.spinner = spinner;
+        private OnItemSelectedListener(int i) {
             this.i = i;
         }
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            if (!l.split("2")[i].equals(Language.getLanguage(position).value)) {
+            if (changes[i]) {
                 Star[] stars;
                 if ((stars = starDao.get(text.getText().toString())).length > 0) {
                     updateByDataBase(stars[0].values);
                 } else {
                     lv.setAdapter(null);
                 }
+            } else {
+                changes[i] = true;
             }
         }
 
@@ -158,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
         public void onNothingSelected(AdapterView<?> parent) {
         }
     }
-
 
     @OnClick(R.id.star)
     public void click_star(ImageView iv) {
@@ -274,8 +275,16 @@ public class MainActivity extends AppCompatActivity {
 
                                 }
                             };
-                            Spinner_from.setSelection(Language.getLanguage(strs[0]).type);
-                            Spinner_to.setSelection(Language.getLanguage(strs[1]).type);
+
+                            if (Language.getLanguage(strs[0]).type != Spinner_from.getSelectedItemPosition()) {
+                                changes[0] = false;
+                                Spinner_from.setSelection(Language.getLanguage(strs[0]).type, false);
+                            }
+                            if (Language.getLanguage(strs[1]).type != Spinner_to.getSelectedItemPosition()) {
+                                changes[1] = false;
+                                Spinner_to.setSelection(Language.getLanguage(strs[1]).type, false);
+                            }
+
 
                             is_star(l);
                         }
